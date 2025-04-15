@@ -2,123 +2,225 @@ package podcastindex
 
 import (
 	"encoding/json"
-	"net/url"
 	"os"
-	"podcastindex/podcast"
-	"reflect"
 	"sort"
+	"strings"
 	"testing"
-	"time"
-
-	"golang.org/x/text/language"
 )
 
-// TestUnmarshalPodcastFromTitleJSON verifies that the JSON data from the
-// /podcasts/bytitle endpoint (or similar search endpoints returning podcast feeds)
-// can be correctly unmarshalled into the Podcast struct.
-func TestUnmarshalPodcastFromTitleJSON(t *testing.T) {
-	// Helper to parse URLs and handle errors inline
-	parseURL := func(rawURL string) url.URL {
-		u, err := url.Parse(rawURL)
-		if err != nil {
-			t.Fatalf("Failed to parse URL '%s': %v", rawURL, err)
-		}
-		return *u
-	}
-
-	// Define expected time values based on the JSON data
-	lastUpdateTime := time.Unix(1744427062, 0).UTC()
-	lastCrawlTime := time.Unix(1744427030, 0).UTC()
-	lastParseTime := time.Unix(1744427084, 0).UTC()
-	lastGoodHTTPStatusTime := time.Unix(1744427030, 0).UTC()
-	newestItemPubDate := time.Unix(1546399813, 0).UTC()
-
-	// Define the expected Go struct slice matching the JSON structure
-	expectedPodcasts := []*Podcast{
-		{
-			ID:                     podcast.ID(75075),
-			Title:                  "Batman University",
-			URL:                    parseURL("https://feeds.theincomparable.com/batmanuniversity"),
-			OriginalURL:            parseURL("https://feeds.theincomparable.com/batmanuniversity"),
-			Link:                   parseURL("https://www.theincomparable.com/batmanuniversity/"),
-			Description:            `Batman University is a seasonal podcast about you know who. It began with an analysis of episodes of “Batman: The Animated Series” but has now expanded to cover other series, movies, and media. Your professor is Tony Sindelar.`,
-			Author:                 "Tony Sindelar",
-			OwnerName:              "",
-			Image:                  parseURL("https://www.theincomparable.com/imgs/logos/logo-batmanuniversity-3x.jpg"),
-			Artwork:                parseURL("https://www.theincomparable.com/imgs/logos/logo-batmanuniversity-3x.jpg"),
-			LastUpdateTime:         lastUpdateTime,
-			LastCrawlTime:          lastCrawlTime,
-			LastParseTime:          lastParseTime,
-			InPollingQueue:         nil, // Assuming nil if not present or 0/false
-			Priority:               0,   // Assuming 0 if not present
-			LastGoodHTTPStatusTime: lastGoodHTTPStatusTime,
-			LastHTTPStatus:         200,
-			ContentType:            "application/rss+xml",
-			Language:               language.Make("en"),
-			Explicit:               false,
-			EpisodeCount:           19,
-			ITunesID:               podcast.ITunesID(1441923632),
-			Generator:              "", // Assuming empty if not present or null
-			Categories: []podcast.Category{
-				{ID: 104, Name: "Tv"},
-				{ID: 105, Name: "Film"},
-				{ID: 107, Name: "Reviews"},
-			},
-			GUID:              podcast.GUID("ac9907f2-a748-59eb-a799-88a9c8bfb9f5"),
-			ITunesType:        "", // Assuming empty if not present or null
-			Type:              0,
-			Medium:            "podcast",
-			Dead:              false,
-			CrawlErrors:       0,
-			ParseErrors:       0,
-			Locked:            false,
-			ImageURLHash:      1702747127,
-			NewestItemPubDate: &newestItemPubDate,
-			Value:             nil, // Assuming nil if not present
-		},
-	}
-
+// TestPodcastMarshalUnmarshalJSON verifies that the MarshalJSON and UnmarshalJSON methods
+// work correctly and maintain symmetry (marshal -> unmarshal -> marshal produces the same result).
+func TestPodcastMarshalUnmarshalJSON(t *testing.T) {
 	// Read the mock JSON from file
-	jsonBytes, err := os.ReadFile("testdata/example_podcasts_by_title.json")
+	originalJSON, err := os.ReadFile("testdata/example_podcasts_by_title.json")
 	if err != nil {
 		t.Fatalf("Failed to read mock JSON file: %v", err)
 	}
 
-	// Define a struct that matches the overall JSON response structure
-	// This assumes the podcasts are nested under a "feeds" key
-	var response struct {
-		Status      string     `json:"status"`
-		Feeds       []*Podcast `json:"feeds"`
-		Count       int        `json:"count"`
-		Query       string     `json:"query"` // Or map[string]string if query is complex
-		Description string     `json:"description"`
-	}
-
-	err = json.Unmarshal(jsonBytes, &response)
+	var response searchResponse
+	// Step 1: Unmarshal the original JSON to a Podcast struct
+	err = json.Unmarshal(originalJSON, &response)
 	if err != nil {
-		t.Fatalf("Failed to unmarshal JSON: %v", err)
+		t.Fatalf("Failed to unmarshal original JSON: %v", err)
 	}
 
-	actualPodcasts := response.Feeds
-	for _, p := range actualPodcasts {
-		p.LastUpdateTime = p.LastUpdateTime.UTC()
-		p.LastCrawlTime = p.LastCrawlTime.UTC()
-		p.LastParseTime = p.LastParseTime.UTC()
-		p.LastGoodHTTPStatusTime = p.LastGoodHTTPStatusTime.UTC()
-		if p.NewestItemPubDate != nil {
-			newestPubDate := p.NewestItemPubDate.UTC()
-			p.NewestItemPubDate = &newestPubDate
+	// Ensure we have at least one podcast to test with
+	if len(response.Feeds) == 0 {
+		t.Fatalf("No podcasts found in test data")
+	}
+
+	// Extract all original feeds from JSON for comparison
+	var originalObj map[string]interface{}
+	if err := json.Unmarshal(originalJSON, &originalObj); err != nil {
+		t.Fatalf("Failed to parse original JSON: %v", err)
+	}
+
+	originalFeeds, ok := originalObj["feeds"].([]interface{})
+	if !ok || len(originalFeeds) == 0 {
+		t.Fatalf("Original JSON doesn't contain expected 'feeds' array")
+	}
+
+	// Test each podcast individually
+	for i, originalPodcast := range response.Feeds {
+		t.Logf("Testing podcast #%d: %s", i, originalPodcast.Title)
+
+		// Step 2: Marshal the Podcast struct back to JSON
+		remarshaledJSON, err := json.Marshal(originalPodcast)
+		if err != nil {
+			t.Fatalf("Failed to marshal podcast #%d: %v", i, err)
 		}
-		sort.Slice(p.Categories, func(i, j int) bool {
-			return p.Categories[i].ID < p.Categories[j].ID
+
+		// Extract the corresponding podcast from the original JSON
+		originalPodcastJSON, err := json.Marshal(originalFeeds[i])
+		if err != nil {
+			t.Fatalf("Failed to extract original podcast JSON for podcast #%d: %v", i, err)
+		}
+
+		// Unmarshal both JSONs to maps for a fair comparison
+		var originalMap, remarshaledMap map[string]interface{}
+		if err := json.Unmarshal(originalPodcastJSON, &originalMap); err != nil {
+			t.Fatalf("Failed to unmarshal original podcast JSON to map for podcast #%d: %v", i, err)
+		}
+		if err := json.Unmarshal(remarshaledJSON, &remarshaledMap); err != nil {
+			t.Fatalf("Failed to unmarshal remarshaled JSON to map for podcast #%d: %v", i, err)
+		}
+
+		// Sort categories in maps for deterministic comparison
+		sortCategoriesInMap(originalMap)
+		sortCategoriesInMap(remarshaledMap)
+
+		// Step 3: Compare the original and remarshaled JSON
+		if !jsonMapsEqual(originalMap, remarshaledMap) {
+			t.Errorf("Original JSON and remarshaled JSON are not equal for podcast #%d", i)
+			// Pretty print the JSONs for easier comparison in the error output
+			originalPretty, _ := json.MarshalIndent(originalMap, "", "  ")
+			remarshaledPretty, _ := json.MarshalIndent(remarshaledMap, "", "  ")
+			t.Errorf("Original JSON: %s", originalPretty)
+			t.Errorf("Remarshaled JSON: %s", remarshaledPretty)
+		}
+	}
+}
+
+func TestPodcastUnmarshalJSONWithExtraVariableFails(t *testing.T) {
+	// Read the mock JSON from file
+	originalJSON, err := os.ReadFile("testdata/example_podcast_with_extra_var.json")
+	if err != nil {
+		t.Fatalf("Failed to read mock JSON file: %v", err)
+	}
+
+	// Unmarshal the original JSON to a Podcast struct
+	var podcast Podcast
+	if err := json.Unmarshal(originalJSON, &podcast); err != nil {
+		t.Fatalf("Failed to unmarshal original JSON: %v", err)
+	}
+
+	// Marshal the Podcast struct back to JSON
+	remarshaledJSON, err := json.Marshal(podcast)
+	if err != nil {
+		t.Fatalf("Failed to marshal podcast: %v", err)
+	}
+
+	// Unmarshal both JSONs to maps for comparison
+	var originalMap, remarshaledMap map[string]interface{}
+	if err := json.Unmarshal(originalJSON, &originalMap); err != nil {
+		t.Fatalf("Failed to unmarshal original JSON to map: %v", err)
+	}
+	if err := json.Unmarshal(remarshaledJSON, &remarshaledMap); err != nil {
+		t.Fatalf("Failed to unmarshal remarshaled JSON to map: %v", err)
+	}
+
+	// Sort categories in maps for deterministic comparison
+	sortCategoriesInMap(originalMap)
+	sortCategoriesInMap(remarshaledMap)
+
+	// Assert that the original and remarshaled JSON are NOT equal due to the extra variable
+	if jsonMapsEqual(originalMap, remarshaledMap) {
+		t.Errorf("Expected original JSON and remarshaled JSON to be different due to extra variable")
+		// Pretty print the JSONs for easier comparison in the error output
+		originalPretty, _ := json.MarshalIndent(originalMap, "", "  ")
+		remarshaledPretty, _ := json.MarshalIndent(remarshaledMap, "", "  ")
+		t.Errorf("Original JSON: %s", originalPretty)
+		t.Errorf("Remarshaled JSON: %s", remarshaledPretty)
+	}
+}
+
+// sortCategoriesInMap sorts the categories in a map representation of a podcast
+func sortCategoriesInMap(podcastMap map[string]interface{}) {
+	if categories, ok := podcastMap["categories"].([]interface{}); ok {
+		sort.Slice(categories, func(i, j int) bool {
+			catI, okI := categories[i].(map[string]interface{})
+			catJ, okJ := categories[j].(map[string]interface{})
+			if !okI || !okJ {
+				return false
+			}
+			idI, okI := catI["id"].(float64)
+			idJ, okJ := catJ["id"].(float64)
+			if !okI || !okJ {
+				return false
+			}
+			return idI < idJ
 		})
 	}
+}
 
-	sort.Slice(expectedPodcasts[0].Categories, func(i, j int) bool {
-		return expectedPodcasts[0].Categories[i].ID < expectedPodcasts[0].Categories[j].ID
-	})
+// jsonMapsEqual compares two maps representing JSON objects
+func jsonMapsEqual(a, b map[string]interface{}) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for k, va := range a {
+		vb, ok := b[k]
+		if !ok {
+			return false
+		}
 
-	if !reflect.DeepEqual(actualPodcasts, expectedPodcasts) {
-		t.Errorf("Unmarshalled podcast data does not match expected data.\nExpected: %#v\nGot:      %#v", expectedPodcasts[0], actualPodcasts[0])
+		// Special case for language field - compare as lowercase
+		// https://github.com/Podcastindex-org/docs-api/issues/142
+		if k == "language" {
+			if vaStr, okA := va.(string); okA {
+				if vbStr, okB := vb.(string); okB {
+					// If both are valid strings, compare them case-insensitively
+					if strings.EqualFold(vaStr, vbStr) {
+						continue // Values match case-insensitively, move to next field
+					}
+					return false
+				}
+			}
+		}
+
+		switch va := va.(type) {
+		case map[string]interface{}:
+			if vb, ok := vb.(map[string]interface{}); ok {
+				if !jsonMapsEqual(va, vb) {
+					return false
+				}
+			} else {
+				return false
+			}
+		case []interface{}:
+			if vb, ok := vb.([]interface{}); ok {
+				if len(va) != len(vb) {
+					return false
+				}
+				for i := range va {
+					if !jsonValuesEqual(va[i], vb[i]) {
+						return false
+					}
+				}
+			} else {
+				return false
+			}
+		default:
+			if va != vb {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// jsonValuesEqual compares two JSON values
+func jsonValuesEqual(a, b interface{}) bool {
+	switch va := a.(type) {
+	case map[string]interface{}:
+		if vb, ok := b.(map[string]interface{}); ok {
+			return jsonMapsEqual(va, vb)
+		}
+		return false
+	case []interface{}:
+		if vb, ok := b.([]interface{}); ok {
+			if len(va) != len(vb) {
+				return false
+			}
+			for i := range va {
+				if !jsonValuesEqual(va[i], vb[i]) {
+					return false
+				}
+			}
+			return true
+		}
+		return false
+	default:
+		return a == b
 	}
 }

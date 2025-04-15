@@ -2,6 +2,7 @@ package podcastindex
 
 import (
 	"context"
+	"log"
 	"net/url"
 	"strconv"
 )
@@ -32,6 +33,11 @@ func (c *Client) SearchPodcastsByTitle(ctx context.Context, title string, params
 	urlParams := url.Values{"q": {title}, "max": {"10"}}
 	if params != nil {
 		if params.Max != 0 {
+			if params.Max >= 100 {
+				// Warn the user that despite a stated max of 1000, the API only supports a max of 99; https://github.com/Podcastindex-org/docs-api/issues/141
+				params.Max = 99
+				log.Printf("Warning: despite a stated max of 1000, the API only supports a max of 99 for this endpoint; see https://github.com/Podcastindex-org/docs-api/issues/141. Truncating max to 99.")
+			}
 			urlParams.Set("max", strconv.Itoa(params.Max))
 		}
 		if params.Clean {

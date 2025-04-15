@@ -7,6 +7,7 @@ import (
 	"podcastindex/podcast"
 	"strconv"
 	"time"
+	"unsafe"
 
 	"golang.org/x/text/language"
 )
@@ -19,122 +20,122 @@ import (
 type Podcast struct {
 
 	// ID is The internal PodcastIndex.org Feed ID.
-	ID podcast.ID `json:"id"`
+	ID podcast.ID
 	// GUID is the GUID from the podcast:guid tag in the feed. This value is a unique, global identifier for the podcast.
 	//
 	// See the namespace spec for GUID for details.
 	// https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md#guid
-	GUID podcast.GUID `json:"podcastGUID"`
+	GUID podcast.GUID
 	// Title is the name of the feed
-	Title string `json:"title"`
+	Title string
 	// URL is the current feed url
-	URL url.URL `json:"url"`
+	URL url.URL
 	// OriginalURL is the url of the feed, before it changed to the current url value.
-	OriginalURL url.URL `json:"originalURL"`
+	OriginalURL url.URL
 	// Link is the channel-level link in the feed
-	Link url.URL `json:"link"`
+	Link url.URL
 	// Description is the channel-level description
 	//
 	// Uses the longer of the possible fields in the feed: <description>, <itunes:summary> and <content:encoded>
-	Description string `json:"description"`
+	Description string
 	// Author is the channel-level author element.
 	//
 	// Usually iTunes specific, but could be from another namespace if not present.
-	Author string `json:"author"`
+	Author string
 	// OwnerName is the channel-level owner:name element.
 	//
 	// Usually iTunes specific, but could be from another namespace if not present.
-	OwnerName string `json:"ownerName"`
+	OwnerName string
 	// Image is the channel-level image element.
-	Image url.URL `json:"image"`
+	Image url.URL
 	// Artwork is seemingly the best artwork we can find for the feed.
 	//
 	// Might be the same as image in most instances
-	Artwork url.URL `json:"artwork"`
+	Artwork url.URL
 	// LastUpdateTime is the channel-level pubDate for the feed, if it's sane.
 	//
 	// If not, this is a heuristic value, arrived at by analyzing other parts of the feed, like item-level pubDates.
-	LastUpdateTime time.Time `json:"lastUpdateTime"`
+	LastUpdateTime time.Time
 	// LastCrawlTime is the last time we attempted to pull this feed from its url.
-	LastCrawlTime time.Time `json:"lastCrawlTime"`
+	LastCrawlTime time.Time
 	// LastParseTime is the last time we tried to parse the downloaded feed content.
-	LastParseTime time.Time `json:"lastParseTime"`
+	LastParseTime time.Time
 	// InPollingQueue indicates if feed is currently scheduled to be polled/checked for new episodes.
-	InPollingQueue *int `json:"inPollingQueue"`
+	InPollingQueue *int
 	// Priority is How often the feed is checked for updates and new episodes
 	//
 	// A value of -1 means never check. A value of 5 means check the most.
 	//
 	// Allowed: -1┃0┃1┃2┃3┃4┃5
-	Priority int `json:"priority"`
+	Priority *int
 	// LastGoodHTTPStatusTime is the timestamp of the last time we got a "good", meaning non-4xx/non-5xx, status code when pulling this feed from its url.
-	LastGoodHTTPStatusTime time.Time `json:"lastGoodHttpStatusTime"`
+	LastGoodHTTPStatusTime time.Time
 	// LastHTTPStatus is the last http status code we got when pulling this feed from its url.
 	//
 	// You will see some made up status codes sometimes. These are what we use to track state within the feed puller. These all start with 9xx.
-	LastHTTPStatus int `json:"lastHTTPStatus"`
+	LastHTTPStatus int
 	// ContentType is The Content-Type header from the last time we pulled this feed from its url.
-	ContentType string `json:"contentType"`
+	ContentType string
 	// ITunesID is The iTunes id of this feed if there is one, and we know what it is.
 	// Note this CAN be null if not found.
-	ITunesID podcast.ITunesID `json:"itunesID"`
+	ITunesID podcast.ITunesID
 	// ITunesType is the type of iTunes feed.
 	//
 	// Possible values: episodic, serial
-	ITunesType string `json:"itunesType"`
+	ITunesType *string
 	// Generator is the channel-level generator element if there is one.
-	Generator string `json:"generator"`
+	Generator string
 	// Language is the channel-level language specification of the feed.
 	//
 	//Languages accord with the RSS language Spec.
-	Language language.Tag `json:"language"`
+	Language language.Tag
 	// Explicit is whether the feed is marked as explicit
-	Explicit bool `json:"explicit"`
+	Explicit bool
 	// Type of source feed where:
 	//
 	//    0: RSS - podcast.FeedRSS
 	//    1: Atom - podcast.FeedAtom
 	//
 	// Allowed: 0┃1
-	Type int `json:"type"`
+	Type int
 	// Medium is the value of the podcast:medium attribute for the feed.
 	//
 	// See the medium description in the podcast namespace for more information.
 	// https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md#medium
-	Medium string `json:"medium"`
+	Medium string
 	// Dead: At some point, we give up trying to process a feed and mark it as dead. This is usually after 1000 errors without a successful pull/parse cycle. Once the feed is marked dead, we only check it once per month.
-	Dead bool `json:"dead"`
+	Dead bool
 	// EpisodeCount is the number of episodes in the feed known to the index.
-	EpisodeCount int `json:"episodeCount"`
+	EpisodeCount int
 	// CrawlErrors is the number of errors we've encountered trying to pull a copy of the feed. Errors are things like a 500 or 404 response, a server timeout, bad encoding, etc.
-	CrawlErrors int `json:"crawlErrors"`
+	CrawlErrors int
 	// ParseErrors is  The number of errors we've encountered trying to parse the feed content. Errors here are things like not well-formed xml, bad character encoding, etc.
 	// We fix many of these types of issues on the fly when parsing. We only increment the errors count when we can't fix it.
-	ParseErrors int `json:"parseErrors"`
+	ParseErrors int
 	// Categories is an array of categories, where the index is Category ID, and the value is Category Name.
 	// All Category numbers and names are returned by the categories/list endpoint.
-	Categories []podcast.Category `json:"categories"`
+	Categories []podcast.Category
 	// Locked: Tell other podcast platforms whether they are allowed to import this feed. A value of true means that
 	// any attempt to import this feed into a new platform should be rejected.
-	Locked bool `json:"locked"`
+	Locked bool
 	// ImageURLHash is a CRC32 hash of the image url with the protocol (http://, https://) removed. 64bit integer.
-	ImageURLHash int `json:"imageURLHash"`
+	ImageURLHash int
 	// NewestItemPubDate is the time the most recent episode in the feed was published.
 	// Note: some endpoints use newestItemPubdate while others use newestItemPublishTime. They return the same information.
 	// See https://github.com/Podcastindex-org/api/issues/3 to track when the property name is updated.
-	NewestItemPubDate *time.Time `json:"newestItemPubDate"`
+	NewestItemPubDate *time.Time
 	// Value is the "Value for Value" payment information for the podcast. Will be nil if not reported.
-	Value *podcast.Value `json:"value"`
+	Value *podcast.Value
 }
 
 // podcastJSON is an intermediary struct used for unmarshalling Podcast data,
 // handling Unix timestamps for time fields, converting category IDs to ints, and parsing URLs.
 type podcastJSON struct {
 	ID                     int               `json:"id"`
-	GUID                   string            `json:"podcastGUID"`
+	GUID                   string            `json:"podcastGuid"`
 	Title                  string            `json:"title"`
 	URL                    string            `json:"url"`
-	OriginalURL            string            `json:"originalURL"`
+	OriginalURL            string            `json:"originalUrl"`
 	Link                   string            `json:"link"`
 	Description            string            `json:"description"`
 	Author                 string            `json:"author"`
@@ -145,10 +146,10 @@ type podcastJSON struct {
 	LastCrawlTime          int64             `json:"lastCrawlTime"`
 	LastParseTime          int64             `json:"lastParseTime"`
 	LastGoodHTTPStatusTime int64             `json:"lastGoodHttpStatusTime"`
-	LastHTTPStatus         int               `json:"lastHTTPStatus"`
+	LastHTTPStatus         int               `json:"lastHttpStatus"`
 	ContentType            string            `json:"contentType"`
-	ITunesID               *int              `json:"itunesID"`
-	ITunesType             string            `json:"itunesType"`
+	ITunesID               *int              `json:"itunesId"`
+	ITunesType             *string           `json:"itunesType,omitempty"`
 	Generator              string            `json:"generator"`
 	Language               string            `json:"language"`
 	Explicit               bool              `json:"explicit"`
@@ -158,13 +159,13 @@ type podcastJSON struct {
 	EpisodeCount           int               `json:"episodeCount"`
 	CrawlErrors            int               `json:"crawlErrors"`
 	ParseErrors            int               `json:"parseErrors"`
-	InPollingQueue         *int              `json:"inPollingQueue"`
-	Priority               int               `json:"priority"`
+	InPollingQueue         *int              `json:"inPollingQueue,omitempty"`
+	Priority               *int              `json:"priority,omitempty"`
 	Categories             map[string]string `json:"categories"`
 	Locked                 int               `json:"locked"`
-	ImageURLHash           int               `json:"imageURLHash"`
-	NewestItemPubDate      int64             `json:"newestItemPubDate"`
-	Value                  *podcast.Value    `json:"value"`
+	ImageURLHash           int               `json:"imageUrlHash"`
+	NewestItemPubDate      int64             `json:"newestItemPubdate"`
+	Value                  *podcast.Value    `json:"value,omitempty"`
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface for Podcast.
@@ -199,7 +200,9 @@ func (p *Podcast) UnmarshalJSON(data []byte) error {
 	p.CrawlErrors = aux.CrawlErrors
 	p.ParseErrors = aux.ParseErrors
 	p.InPollingQueue = aux.InPollingQueue
-	p.Priority = aux.Priority
+	if aux.Priority != nil {
+		p.Priority = aux.Priority
+	}
 	p.Locked = aux.Locked == 1 // Convert int to bool
 	p.ImageURLHash = aux.ImageURLHash
 	p.Value = aux.Value // Assign pointer directly
@@ -258,4 +261,74 @@ func (p *Podcast) UnmarshalJSON(data []byte) error {
 	p.NewestItemPubDate = &newestItemPubDateTime
 
 	return nil
+}
+
+func (p *Podcast) MarshalJSON() ([]byte, error) {
+
+	aux := podcastJSON{
+		ID:                     int(p.ID),
+		GUID:                   string(p.GUID),
+		Title:                  p.Title,
+		URL:                    p.URL.String(),
+		OriginalURL:            p.OriginalURL.String(),
+		Link:                   p.Link.String(),
+		Description:            p.Description,
+		Author:                 p.Author,
+		OwnerName:              p.OwnerName,
+		Image:                  p.Image.String(),
+		Artwork:                p.Artwork.String(),
+		LastUpdateTime:         p.LastUpdateTime.Unix(),
+		LastCrawlTime:          p.LastCrawlTime.Unix(),
+		LastParseTime:          p.LastParseTime.Unix(),
+		LastGoodHTTPStatusTime: p.LastGoodHTTPStatusTime.Unix(),
+		LastHTTPStatus:         p.LastHTTPStatus,
+		ContentType:            p.ContentType,
+		Generator:              p.Generator,
+		Explicit:               p.Explicit,
+		Type:                   p.Type,
+		Medium:                 p.Medium,
+		Dead:                   boolToInt(p.Dead),
+		EpisodeCount:           p.EpisodeCount,
+		CrawlErrors:            p.CrawlErrors,
+		ParseErrors:            p.ParseErrors,
+		Locked:                 boolToInt(p.Locked),
+		ImageURLHash:           p.ImageURLHash,
+		Value:                  p.Value,
+	}
+
+	lang := p.Language.String()
+	if lang == "und" {
+		lang = ""
+	}
+	aux.Language = lang
+
+	// Only set non-zero values for pointer fields
+	if p.ITunesID != 0 {
+		itunesID := int(p.ITunesID)
+		aux.ITunesID = &itunesID
+	}
+
+	if p.NewestItemPubDate != nil {
+		aux.NewestItemPubDate = p.NewestItemPubDate.Unix()
+	}
+
+	aux.InPollingQueue = p.InPollingQueue
+	aux.Priority = p.Priority
+	aux.ITunesType = p.ITunesType
+
+	// Convert categories from slice to map
+	if len(p.Categories) > 0 {
+		categories := make(map[string]string, len(p.Categories))
+		for _, category := range p.Categories {
+			categories[strconv.Itoa(int(category.ID))] = category.Name
+		}
+		aux.Categories = categories
+	}
+
+	return json.Marshal(aux)
+}
+
+// Helper function to convert boolean to int (1 for true, 0 for false)
+func boolToInt(b bool) int {
+	return int(*(*byte)(unsafe.Pointer(&b)))
 }

@@ -38,11 +38,4 @@ func TestGetPodcastByFeedIDIntegration(t *testing.T) {
 		}
 		t.Logf("error: %v", err)
 	})
-	/*
-		t.Run("Integration test: Invalid feed ID should return an error", func(t *testing.T) {
-			client := authenticatedClient(t)
-			jsonResponse, _ := client.api.GetRawJSON("/podcasts/bymedium", url.Values{"medium": {"film"}})
-			t.Logf("json: %s", jsonResponse)
-		})
-	*/
 }
