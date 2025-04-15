@@ -152,7 +152,7 @@ type podcastJSON struct {
 	ITunesType             *string           `json:"itunesType,omitempty"`
 	Generator              string            `json:"generator"`
 	Language               string            `json:"language"`
-	Explicit               bool              `json:"explicit"`
+	Explicit               json.RawMessage   `json:"explicit"`
 	Type                   int               `json:"type"`
 	Medium                 string            `json:"medium"`
 	Dead                   int               `json:"dead"`
@@ -187,12 +187,16 @@ func (p *Podcast) UnmarshalJSON(data []byte) error {
 	p.LastHTTPStatus = aux.LastHTTPStatus
 	p.ContentType = aux.ContentType
 	if aux.ITunesID != nil {
-		p.ITunesID = podcast.ITunesID(*aux.ITunesID)
+		itunesId := strconv.Itoa(*aux.ITunesID)
+		p.ITunesID = podcast.ITunesID(itunesId)
 	}
 	p.ITunesType = aux.ITunesType
 	p.Generator = aux.Generator
 	p.Language = language.Make(aux.Language)
-	p.Explicit = aux.Explicit
+
+	// Handle explicit field which can be boolean or integer
+	p.Explicit = parseExplicit(aux.Explicit)
+
 	p.Type = aux.Type
 	p.Medium = aux.Medium
 	p.Dead = aux.Dead == 1 // Convert int to bool
@@ -284,7 +288,6 @@ func (p *Podcast) MarshalJSON() ([]byte, error) {
 		LastHTTPStatus:         p.LastHTTPStatus,
 		ContentType:            p.ContentType,
 		Generator:              p.Generator,
-		Explicit:               p.Explicit,
 		Type:                   p.Type,
 		Medium:                 p.Medium,
 		Dead:                   boolToInt(p.Dead),
@@ -296,6 +299,10 @@ func (p *Podcast) MarshalJSON() ([]byte, error) {
 		Value:                  p.Value,
 	}
 
+	// Marshal explicit as a boolean
+	explicitJSON, _ := json.Marshal(p.Explicit)
+	aux.Explicit = explicitJSON
+
 	lang := p.Language.String()
 	if lang == "und" {
 		lang = ""
@@ -303,8 +310,8 @@ func (p *Podcast) MarshalJSON() ([]byte, error) {
 	aux.Language = lang
 
 	// Only set non-zero values for pointer fields
-	if p.ITunesID != 0 {
-		itunesID := int(p.ITunesID)
+	if p.ITunesID != "" {
+		itunesID := p.ITunesID.Int()
 		aux.ITunesID = &itunesID
 	}
 
@@ -331,4 +338,22 @@ func (p *Podcast) MarshalJSON() ([]byte, error) {
 // Helper function to convert boolean to int (1 for true, 0 for false)
 func boolToInt(b bool) int {
 	return int(*(*byte)(unsafe.Pointer(&b)))
+}
+
+// Helper function to parse the explicit field which can be boolean or integer
+func parseExplicit(explicit json.RawMessage) bool {
+	if len(explicit) == 0 {
+		return false
+	}
+
+	var explicitBool bool
+	if err := json.Unmarshal(explicit, &explicitBool); err == nil {
+		return explicitBool
+	}
+
+	var explicitInt int
+	if err := json.Unmarshal(explicit, &explicitInt); err == nil {
+		return explicitInt != 0
+	}
+	return false
 }
