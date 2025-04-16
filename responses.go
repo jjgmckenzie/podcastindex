@@ -18,3 +18,17 @@ type getPodcastResponse struct {
 	//  Description is the description of the response
 	Description string `json:"description"`
 }
+
+type getEpisodeResponse struct {
+	// Status indicates API request status; either "true" or "false"
+	Status string `json:"status"`
+	// Query is the object containing the input query data
+	Query string `json:"query"`
+	// LiveItems is the List of live episodes for feed
+	LiveItems []Episode `json:"liveItems"`
+	// Items is the list of episodes matching request
+	Items []Episode `json:"items"`
+	Count int       `json:"count"`
+	//  Description is the description of the response
+	Description string `json:"description"`
+}

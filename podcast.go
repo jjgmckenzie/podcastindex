@@ -2,12 +2,13 @@ package podcastindex
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
+	"podcastindex/internal"
 	"podcastindex/podcast"
 	"strconv"
 	"time"
-	"unsafe"
 
 	"golang.org/x/text/language"
 )
@@ -193,10 +194,6 @@ func (p *Podcast) UnmarshalJSON(data []byte) error {
 	p.ITunesType = aux.ITunesType
 	p.Generator = aux.Generator
 	p.Language = language.Make(aux.Language)
-
-	// Handle explicit field which can be boolean or integer
-	p.Explicit = parseExplicit(aux.Explicit)
-
 	p.Type = aux.Type
 	p.Medium = aux.Medium
 	p.Dead = aux.Dead == 1 // Convert int to bool
@@ -215,6 +212,12 @@ func (p *Podcast) UnmarshalJSON(data []byte) error {
 	var err error
 	var parsedURL *url.URL
 
+	// Handle explicit field which can be boolean or integer
+	explicit, err := parseExplicit(aux.Explicit)
+	if err != nil {
+		return fmt.Errorf("unable to parse json value for explicit: %s", err)
+	}
+	p.Explicit = explicit
 	parsedURL, err = url.Parse(aux.URL)
 	if err != nil {
 		return fmt.Errorf("failed to parse URL '%s': %w", aux.URL, err)
@@ -290,11 +293,11 @@ func (p *Podcast) MarshalJSON() ([]byte, error) {
 		Generator:              p.Generator,
 		Type:                   p.Type,
 		Medium:                 p.Medium,
-		Dead:                   boolToInt(p.Dead),
+		Dead:                   internal.BoolToInt(p.Dead),
 		EpisodeCount:           p.EpisodeCount,
 		CrawlErrors:            p.CrawlErrors,
 		ParseErrors:            p.ParseErrors,
-		Locked:                 boolToInt(p.Locked),
+		Locked:                 internal.BoolToInt(p.Locked),
 		ImageURLHash:           p.ImageURLHash,
 		Value:                  p.Value,
 	}
@@ -338,25 +341,21 @@ func (p *Podcast) MarshalJSON() ([]byte, error) {
 	return json.Marshal(aux)
 }
 
-// Helper function to convert boolean to int (1 for true, 0 for false)
-func boolToInt(b bool) int {
-	return int(*(*byte)(unsafe.Pointer(&b)))
-}
-
 // Helper function to parse the explicit field which can be boolean or integer
-func parseExplicit(explicit json.RawMessage) bool {
+func parseExplicit(explicit json.RawMessage) (bool, error) {
 	if len(explicit) == 0 {
-		return false
+		// len = 0 means false; the default.
+		return false, nil
 	}
 
 	var explicitBool bool
 	if err := json.Unmarshal(explicit, &explicitBool); err == nil {
-		return explicitBool
+		return explicitBool, nil
 	}
 
 	var explicitInt int
 	if err := json.Unmarshal(explicit, &explicitInt); err == nil {
-		return explicitInt != 0
+		return explicitInt != 0, nil
 	}
-	return false
+	return false, errors.New("unexpected value for explicit")
 }

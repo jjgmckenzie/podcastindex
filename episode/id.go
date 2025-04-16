@@ -1,3 +1,3 @@
 package episode
 
-type ID string
+type ID int

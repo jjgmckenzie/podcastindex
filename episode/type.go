@@ -1,3 +1,9 @@
 package episode
 
-// full, trailer, bonus
+type EpisodeType string
+
+const (
+	EpisodeFull    EpisodeType = "full"
+	EpisodeTrailer EpisodeType = "trailer"
+	EpisodeBonus   EpisodeType = "bonus"
+)

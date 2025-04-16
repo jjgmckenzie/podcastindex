@@ -4,6 +4,14 @@
 
 A fully typed idiomatic go library to work with  [Podcast Index](https://podcastindex.org/). Documented, Tested, including integration tests. Requires Podcast Index API key and secret.
 
+Seeks to fully implement the API, while standardizing some quirks (eg having booleans occasionally be integers), and using types wherever possible (eg using time.Time instead of unix integers & url.URL instead of strings.)
+
+Wherever possible, guarantees* compatibility & symmetry (i.e. marshal -> unmarshal produces the same JSON as an API query). 
+
+Also raises console warnings/fixes queries when undocumented issues are hit up against in the API (e.g. [max value documented as 1000, but actually 99](./search_podcast_by_title.go#L39)))
+
+(*Minor asymmetry excluded: [Language tags](https://github.com/Podcastindex-org/docs-api/issues/142))
+
 ### Example Usage
 
 ```go

@@ -1,6 +1,7 @@
 package podcastindex
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -62,5 +63,14 @@ func TestPodcast_UnmarshalJSON_Errors(t *testing.T) {
 				t.Errorf("Expected error containing '%s', but got: %v", tc.expectedError, err)
 			}
 		})
+	}
+}
+
+func TestPodcast_ExplicitParser(t *testing.T) {
+	var rawMessage json.RawMessage
+	rawMessage = []byte(`invalid raw message - neither an int or a bool`)
+	_, err := parseExplicit(rawMessage)
+	if err == nil {
+		t.Errorf("expected an error, but didn't get one")
 	}
 }
