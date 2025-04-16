@@ -7,7 +7,7 @@ type TranscriptType string
 const (
 	TranscriptPlaintext      TranscriptType = "text/plain"
 	TranscriptHTML           TranscriptType = "text/html"
-	TranscriptVtt            TranscriptType = "text/vtt"
+	TranscriptVTT            TranscriptType = "text/vtt"
 	TranscriptApplicationSRT TranscriptType = "application/srt"
 	TranscriptTextSRT        TranscriptType = "text/srt"
 	TranscriptJSON           TranscriptType = "application/json"

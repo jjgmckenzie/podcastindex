@@ -38,7 +38,7 @@ func main() {
 
 ### API Coverage
 
-See [API-COVERAGE.md](.API-COVERAGE.md) to see current API coverage by this library. Right now, the library is mostly limited to search, podcasts, and episodes.
+See [API-COVERAGE.md](./API-COVERAGE.md) to see current API coverage by this library. Right now, the library is mostly limited to search, podcasts, and episodes.
 
 If you'd like to contribute to this project by implementing more of the API endpoints such as Value4Value, please refer to the existing implementations as a guide for how to structure your code.
 
