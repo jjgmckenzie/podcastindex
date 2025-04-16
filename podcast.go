@@ -311,7 +311,10 @@ func (p *Podcast) MarshalJSON() ([]byte, error) {
 
 	// Only set non-zero values for pointer fields
 	if p.ITunesID != "" {
-		itunesID := p.ITunesID.Int()
+		itunesID, err := p.ITunesID.Int()
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert ITunesID to int: %w", err)
+		}
 		aux.ITunesID = &itunesID
 	}
 

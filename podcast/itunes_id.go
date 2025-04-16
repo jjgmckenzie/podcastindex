@@ -7,12 +7,12 @@ import (
 
 type ITunesID string
 
-func (id ITunesID) Int() int {
+func (id ITunesID) Int() (int, error) {
 	// strip prefix if present
 	idStr := strings.TrimPrefix(string(id), "id")
 	i, err := strconv.Atoi(idStr)
 	if err != nil {
-		return 0
+		return 0, err
 	}
-	return i
+	return i, nil
 }
