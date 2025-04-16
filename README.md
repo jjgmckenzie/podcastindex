@@ -12,7 +12,7 @@ Also raises console warnings/fixes queries when undocumented issues are hit up a
 
 (*Minor asymmetry excluded: [Language tags](https://github.com/Podcastindex-org/docs-api/issues/142))
 
-This library is still under active development. Please report issues. API may change dramatically until 
+This library is still under active development. Please report issues. API may change dramatically until v1.0.0
 
 ### Example Usage
 
@@ -37,12 +37,12 @@ func main() {
 	ctx := context.Background()
 	podcasts, err := client.SearchPodcastsByTitle(ctx, "test", nil)
 	if err != nil {
-		t.Fatalf("failed to search podcasts: %v", err)
+		fmt.Printf("failed to search podcasts: %v", err)
 	}
 	for _, podcast := range podcasts {
 		episodes, err := client.GetEpisodes(ctx, *podcast, nil)
 		if err != nil {
-			t.Fatalf("failed to get episodes: %v", err)
+			fmt.Printf("failed to get episodes: %v", err)
 		}
 		for _, episode := range *episodes {
 			fmt.Printf("%s : %s\n", podcast.Title, episode.Title)
