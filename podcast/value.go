@@ -1,7 +1,7 @@
 package podcast
 
 import (
-	"podcastindex/podcast/value"
+	"github.com/jjgmckenzie/podcastindex/podcast/value"
 )
 
 // Value contains the information for supporting the podcast via one of the

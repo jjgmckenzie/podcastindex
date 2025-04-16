@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/jjgmckenzie/podcastindex/internal"
 	"net/url"
-	"podcastindex/internal"
-	"podcastindex/podcast"
+
+	"github.com/jjgmckenzie/podcastindex/podcast"
 	"strconv"
 	"time"
 

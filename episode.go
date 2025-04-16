@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"podcastindex/episode"
-	"podcastindex/internal"
-	"podcastindex/podcast"
 	"strconv"
 	"time"
+
+	"github.com/jjgmckenzie/podcastindex/episode"
+	"github.com/jjgmckenzie/podcastindex/internal"
+	"github.com/jjgmckenzie/podcastindex/podcast"
 
 	"golang.org/x/text/language"
 )

@@ -2,7 +2,8 @@ package podcastindex
 
 import (
 	"context"
-	"podcastindex/podcast"
+
+	"github.com/jjgmckenzie/podcastindex/podcast"
 )
 
 // categoriesResponse is the response from the categories/list endpoint on a 200/OK response.

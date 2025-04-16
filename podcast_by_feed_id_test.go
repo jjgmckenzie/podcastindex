@@ -2,7 +2,7 @@ package podcastindex
 
 import (
 	"context"
-	"podcastindex/podcast"
+	"github.com/jjgmckenzie/podcastindex/podcast"
 	"testing"
 )
 

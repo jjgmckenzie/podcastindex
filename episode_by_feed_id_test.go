@@ -2,8 +2,9 @@ package podcastindex
 
 import (
 	"context"
-	"podcastindex/episode"
 	"testing"
+
+	"github.com/jjgmckenzie/podcastindex/episode"
 )
 
 const testEpisodeID = episode.ID(16795088)

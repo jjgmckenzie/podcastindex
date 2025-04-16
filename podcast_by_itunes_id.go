@@ -3,7 +3,8 @@ package podcastindex
 import (
 	"context"
 	"net/url"
-	"podcastindex/podcast"
+
+	"github.com/jjgmckenzie/podcastindex/podcast"
 )
 
 func (c *Client) GetPodcastByITunesID(ctx context.Context, itunesID podcast.ITunesID) (*Podcast, error) {

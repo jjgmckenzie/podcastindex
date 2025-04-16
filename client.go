@@ -4,7 +4,8 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"podcastindex/internal"
+
+	"github.com/jjgmckenzie/podcastindex/internal"
 )
 
 // DefaultBaseURL is the base URL for the PodcastIndex API

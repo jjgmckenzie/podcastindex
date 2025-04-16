@@ -3,7 +3,9 @@ package podcastindex
 import (
 	"context"
 	"net/url"
-	"podcastindex/podcast"
+
+	"github.com/jjgmckenzie/podcastindex/podcast"
+
 	"strconv"
 )
 

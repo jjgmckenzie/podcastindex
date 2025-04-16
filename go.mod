@@ -1,4 +1,4 @@
-module podcastindex
+module github.com/jjgmckenzie/podcastindex
 
 go 1.24
 

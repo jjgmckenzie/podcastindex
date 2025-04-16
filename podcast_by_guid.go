@@ -3,7 +3,8 @@ package podcastindex
 import (
 	"context"
 	"net/url"
-	"podcastindex/podcast"
+
+	"github.com/jjgmckenzie/podcastindex/podcast"
 )
 
 func (c *Client) GetPodcastByGUID(ctx context.Context, guid podcast.GUID) (*Podcast, error) {

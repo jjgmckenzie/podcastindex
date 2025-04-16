@@ -2,8 +2,8 @@ package podcastindex
 
 import (
 	"context"
+	"github.com/jjgmckenzie/podcastindex/podcast/value"
 	"net/url"
-	"podcastindex/podcast/value"
 	"testing"
 )
 
