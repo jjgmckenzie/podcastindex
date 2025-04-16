@@ -35,13 +35,13 @@ Find details about one or more episodes of a podcast or podcasts.
 | Endpoint                   | Description                                 | Implemented | Client Function |
 |----------------------------|---------------------------------------------|-------------|----------------|
 | **N/A  - Helper Function** | Get episode by using a podcastindex Podcast |✅ | `GetEpisodes()`  |
-| `/episodes/byfeedid`       | Get episodes by podcast feed ID             | ❌ | -              |
+| `/episodes/byfeedid`       | Get episodes by podcast feed ID             | ✅ | `GetEpisodesByFeedID()`         |
 | `/episodes/byfeedurl`      | Get episodes by podcast feed URL            | ❌ | -              |
 | `/episodes/bypodcastguid`  | Get episodes by podcast feed GUID           | ❌ | -              |
 | `/episodes/byitunesid`     | Get episodes by podcast feed iTunes ID      | ❌ | -              |
-| `/episodes/byid`           | Get episode metadata by ID                  | ❌ | -              |
+| `/episodes/byid`           | Get episode metadata by ID                  | ✅ | `GetEpisodeByID()`              |
 | `/episodes/byguid`         | Get episode metadata by GUID                | ❌ | -              |
-| `/episodes/live`           | Get episodes with podcast:liveitem tag      | ❌ | -              |
+| `/episodes/live`           | Get episodes with podcast:liveitem tag      | ✅ | `GetLiveEpisodes()`|
 | `/episodes/random`         | Get random batch of episodes                | ❌ | -              |
 
 ### Recent

@@ -12,6 +12,8 @@ Also raises console warnings/fixes queries when undocumented issues are hit up a
 
 (*Minor asymmetry excluded: [Language tags](https://github.com/Podcastindex-org/docs-api/issues/142))
 
+This library is still under active development. Please report issues. API may change dramatically until 
+
 ### Example Usage
 
 ```go
@@ -33,10 +35,16 @@ func main() {
 		APISecret: secret,
 	})
 	ctx := context.Background()
-	podcasts := client.SearchPodcastsByTitle(ctx, "test", nil)
+	podcasts, err := client.SearchPodcastsByTitle(ctx, "test", nil)
+	if err != nil {
+		t.Fatalf("failed to search podcasts: %v", err)
+	}
 	for _, podcast := range podcasts {
-		episodes := client.GetEpisodes(ctx, podcast, nil)
-		for _, episode := range episodes {
+		episodes, err := client.GetEpisodes(ctx, *podcast, nil)
+		if err != nil {
+			t.Fatalf("failed to get episodes: %v", err)
+		}
+		for _, episode := range *episodes {
 			fmt.Printf("%s : %s\n", podcast.Title, episode.Title)
 		}
 	}
@@ -46,7 +54,7 @@ func main() {
 
 ### API Coverage
 
-See [API-COVERAGE.md](./API-COVERAGE.md) to see current API coverage by this library. Right now, the library is mostly limited to search, podcasts, and episodes.
+See [COVERAGE.md](./COVERAGE) to see current API coverage by this library. Right now, the library is mostly limited to search, podcasts, and episodes.
 
 If you'd like to contribute to this project by implementing more of the API endpoints such as Value4Value, please refer to the existing implementations as a guide for how to structure your code.
 

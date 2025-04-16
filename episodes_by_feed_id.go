@@ -7,14 +7,7 @@ import (
 	"strconv"
 )
 
-type GetEpisodesByFeedIDParams struct {
-	// Max is the maximum number of episodes to return
-	Max int
-	//If present, return the full text value of any text fields (ex: description). If not provided, field value is truncated to 100 words.
-	FullText bool
-}
-
-func (c *Client) GetEpisodesByFeedID(ctx context.Context, feedID podcast.ID, params *GetEpisodesByFeedIDParams) (*[]Episode, error) {
+func (c *Client) GetEpisodesByFeedID(ctx context.Context, feedID podcast.ID, params *GetEpisodesParams) (*[]Episode, error) {
 	var response getEpisodeResponse
 	urlParams := url.Values{"id": {strconv.Itoa(int(feedID))}}
 	if params != nil {
