@@ -12,7 +12,7 @@ Also raises console warnings/fixes queries when undocumented issues are hit up a
 
 (*Minor asymmetry excluded: [Language tags](https://github.com/Podcastindex-org/docs-api/issues/142))
 
-This library is still under active development. Please report issues. API may change dramatically until v1.0.0
+This library is still under active development. Please report issues. API may change dramatically until v1.0.0 - the current version is v0.1.0
 
 ### Example Usage
 
