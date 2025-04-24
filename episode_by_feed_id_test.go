@@ -20,7 +20,16 @@ func TestGetEpisodeByFeedIDIntegration(t *testing.T) {
 		if p == nil {
 			t.Fatalf("podcast is nil")
 		}
-
+	})
+	t.Run("Integration test: Server response should be correct", func(t *testing.T) {
+		client := authenticatedClient(t)
+		e, err := client.GetEpisodeByID(context.Background(), testEpisodeID)
+		if err != nil {
+			t.Fatalf("failed to get podcast: %v", err)
+		}
+		if e.ID != testEpisodeID {
+			t.Fatalf("got episode ID %d, want %d", e.ID, testEpisodeID)
+		}
 	})
 	t.Run("Integration test: Unauthenticated client should return an error", func(t *testing.T) {
 		client := unauthenticatedClient()
