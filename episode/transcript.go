@@ -1,6 +1,9 @@
 package episode
 
-import "net/url"
+import (
+	"encoding/json"
+	"net/url"
+)
 
 type TranscriptType string
 
@@ -16,4 +19,34 @@ const (
 type Transcript struct {
 	URL  url.URL
 	Type TranscriptType
+}
+
+func (t Transcript) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		URL  string         `json:"URL"`
+		Type TranscriptType `json:"Type"`
+	}{
+		URL:  t.URL.String(),
+		Type: t.Type,
+	})
+}
+
+func (t *Transcript) UnmarshalJSON(data []byte) error {
+	aux := &struct {
+		URL  string         `json:"URL"`
+		Type TranscriptType `json:"Type"`
+	}{}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	parsedURL, err := url.Parse(aux.URL)
+	if err != nil {
+		return err
+	}
+
+	t.URL = *parsedURL
+	t.Type = aux.Type
+	return nil
 }
