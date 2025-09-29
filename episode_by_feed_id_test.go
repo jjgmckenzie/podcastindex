@@ -2,12 +2,13 @@ package podcastindex
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/jjgmckenzie/podcastindex/episode"
 )
 
-const testEpisodeID = episode.ID(16795088)
+const testEpisodeID = episode.ID(43141716087)
 const testInvalidEpisodeID = episode.ID(0)
 
 func TestGetEpisodeByFeedIDIntegration(t *testing.T) {
@@ -46,5 +47,23 @@ func TestGetEpisodeByFeedIDIntegration(t *testing.T) {
 			t.Fatalf("expected error to be returned")
 		}
 		t.Logf("error: %v", err)
+	})
+	t.Run("Integration test: Episode description should not end with '...' and should be more than 100 words", func(t *testing.T) {
+		client := authenticatedClient(t)
+		e, err := client.GetEpisodeByID(context.Background(), testEpisodeID)
+		if err != nil {
+			t.Fatalf("failed to get episode: %v", err)
+		}
+		desc := e.Description
+		if len(desc) == 0 {
+			t.Fatalf("description is empty")
+		}
+		if len(desc) >= 3 && desc[len(desc)-3:] == "..." {
+			t.Fatalf("description ends with '...'")
+		}
+		wordCount := len(strings.Fields(desc))
+		if wordCount <= 100 {
+			t.Fatalf("description has %d words, want > 100", wordCount)
+		}
 	})
 }

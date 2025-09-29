@@ -17,7 +17,7 @@ type getSingleEpisodeResponse struct {
 
 func (c *Client) GetEpisodeByID(ctx context.Context, feedID episode.ID) (*Episode, error) {
 	var response getSingleEpisodeResponse
-	params := url.Values{"id": {strconv.Itoa(int(feedID))}}
+	params := url.Values{"id": {strconv.Itoa(int(feedID))}, "fulltext": {"true"}}
 	err := c.api.Get(ctx, "/episodes/byid", params, &response)
 	if err != nil {
 		return nil, err
